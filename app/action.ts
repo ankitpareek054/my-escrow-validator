@@ -1,19 +1,31 @@
 'use server'
-import { sql } from '@vercel/postgres';
+import { put } from '@vercel/blob';
 import { revalidatePath } from 'next/cache';
 
 export async function joinWaitlist(formData: FormData) {
   const email = formData.get('email') as string;
   const role = formData.get('role') as string;
 
+  // Create a simple data object
+  const userData = JSON.stringify({
+    email,
+    role,
+    signupDate: new Date().toISOString(),
+  });
+
   try {
-    // This creates the table if it doesn't exist and inserts the user
-    await sql`CREATE TABLE IF NOT EXISTS waitlist (id SERIAL PRIMARY KEY, email TEXT UNIQUE, role TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-    await sql`INSERT INTO waitlist (email, role) VALUES (${email}, ${role})`;
+    // This saves a file named "waitlist/email-timestamp.json" in your Blob store
+    const filename = `waitlist/${email.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
     
-    revalidatePath('/'); // Refresh the page
+    await put(filename, userData, {
+      access: 'public', // This makes the file readable in your Vercel dashboard
+      contentType: 'application/json',
+    });
+
+    revalidatePath('/');
     return { success: true };
   } catch (e) {
-    return { error: "You're already on the list!" };
+    console.error(e);
+    return { error: "Something went wrong. Please try again." };
   }
 }

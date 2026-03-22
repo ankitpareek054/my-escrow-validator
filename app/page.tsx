@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
-const locations = ['🇩🇪 Berlin', '🇨🇳 Shenzhen', '🇮🇳 Mumbai', '🇺🇸 LA', '🇯🇵 Osaka', '🇧🇷 São Paulo'];
-const categories = ['Electronics', 'Textiles', 'Machinery', 'Auto Parts'];
+const locations = ['🇩🇪 Berlin', '🇨🇳 Shenzhen', '🇮🇳 Mumbai', '🇺🇸 Los Angeles', '🇯🇵 Osaka', '🇧🇷 São Paulo', '🇻🇳 Hanoi'];
+const categories = ['Electronics', 'Raw Textiles', 'Industrial Machinery', 'Auto Parts', 'Chemicals'];
 
 export default function LandingPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -18,9 +18,9 @@ export default function LandingPage() {
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       setLiveEvents(prev => [
-        `🟢 ${loc} verified for ${cat} @ ${time}`,
+        `🟢 Audit Verified: ${loc} supplier cleared for ${cat} @ ${time}`,
         ...prev
-      ].slice(0, 2));
+      ].slice(0, 3));
     };
 
     addEvent();
@@ -33,65 +33,80 @@ export default function LandingPage() {
   const rotateX = useTransform(y, [0, 400], [10, -10]);
   const rotateY = useTransform(x, [0, 400], [-10, 10]);
 
- async function handleSubmit(e: any) {
-  e.preventDefault();
-  setStatus('loading');
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+    setStatus('loading');
 
-  const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-  try {
-    const res = await fetch('/api/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: formData.get('email'),
-        role: formData.get('role'),
-      }),
-    });
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+          role: formData.get('role'),
+        }),
+      });
 
-    if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error();
 
-    setStatus('success');
-    setShowToast(true);
+      setStatus('success');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
 
-    // auto hide after 3 sec
-    setTimeout(() => setShowToast(false), 3000);
-
-  } catch {
-    setStatus('idle');
+    } catch {
+      setStatus('idle');
+    }
   }
-}
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
+    <div className="min-h-screen bg-[#020617] text-white pb-20">
 
-      {/* LIVE BAR */}
-      <div className="bg-white/5 border-b border-white/10 py-2 px-4 text-xs text-gray-400">
-        <AnimatePresence>
-          {liveEvents.map(event => (
-            <motion.div key={event}>{event}</motion.div>
-          ))}
-        </AnimatePresence>
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/10 blur-[120px] rounded-full" />
+      </div>
+
+      {/* LIVE FEED */}
+      <div className="w-full bg-white/5 border-b border-white/10 py-2 px-4 text-xs text-gray-400 overflow-hidden">
+        <div className="max-w-7xl mx-auto flex gap-6">
+          <span className="text-emerald-400 font-bold">LIVE AUDITS</span>
+          <div className="flex gap-6 overflow-hidden">
+            {liveEvents.map((event) => (
+              <span key={event}>{event}</span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* HERO */}
-      <section className="px-4 pt-10 pb-6 text-center">
-        <h1 className="text-3xl sm:text-5xl font-black leading-tight mb-4">
-          Stop Trusting <span className="text-red-500">Screens</span><br/>
-          Trust <span className="text-blue-500">Reality</span>
-        </h1>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 lg:pt-24 grid lg:grid-cols-2 gap-12 items-center">
 
-        <p className="text-gray-400 text-sm sm:text-base max-w-md mx-auto mb-6 leading-relaxed">
-          Fake suppliers. Fake inventory. Real money lost.
-          <br/><br/>
-          We verify suppliers physically before your money moves.
-        </p>
-      </section>
+        <div>
+          <h1 className="text-4xl sm:text-6xl font-black leading-tight mb-6">
+            Trade What You Can <br/>
+            <span className="text-blue-500">Physically Verify</span>
+          </h1>
 
-      {/* FORM */}
-      <section className="px-4 pb-10">
+          <p className="text-gray-400 text-base sm:text-lg mb-8 leading-relaxed">
+            Global trade runs on blind trust — and that’s the problem.
+            Suppliers fake inventory. Documents are manipulated. Buyers lose money.
+            <br/><br/>
+            We replace digital claims with **on-ground verification + escrow protection**.
+          </p>
+
+          <div className="flex flex-wrap gap-3 text-xs sm:text-sm text-gray-500">
+            <span>✔ Physical warehouse audits</span>
+            <span>✔ Escrow-secured payments</span>
+            <span>✔ Verified shipment proof</span>
+          </div>
+        </div>
+
+        {/* FORM */}
         <motion.div
-          className="max-w-md mx-auto"
+          className="sticky top-16"
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             x.set(e.clientX - rect.left);
@@ -100,11 +115,12 @@ export default function LandingPage() {
           onMouseLeave={() => { x.set(200); y.set(200); }}
           style={{ rotateX, rotateY }}
         >
-          <div className="bg-[#0d1117] p-6 rounded-2xl border border-white/10">
+          <div className="bg-[#0d1117] p-6 sm:p-10 rounded-3xl border border-white/10">
 
             {status === 'success' ? (
               <div className="text-center">
-                <h3 className="text-xl text-blue-400 mb-2">You're in 🚀</h3>
+                <div className="text-4xl mb-4">🚀</div>
+                <h3 className="text-xl sm:text-2xl text-blue-400 mb-2">You're on the list</h3>
                 <p className="text-gray-400 text-sm">
                   We’ll notify you when verified suppliers go live.
                 </p>
@@ -112,23 +128,28 @@ export default function LandingPage() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
 
+                <h3 className="text-xl sm:text-2xl font-bold">Get Early Access</h3>
+                <p className="text-gray-500 text-sm">
+                  Join buyers and sellers testing a safer way to trade.
+                </p>
+
                 <input
                   name="email"
                   type="email"
                   required
                   placeholder="Work Email"
-                  className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-sm"
+                  className="w-full p-4 rounded-xl bg-black/40 border border-white/10"
                 />
 
                 <select
                   name="role"
-                  className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-sm"
+                  className="w-full p-4 rounded-xl bg-black/40 border border-white/10"
                 >
                   <option value="buyer">I want to Buy Safely</option>
-                  <option value="seller">I want to Sell</option>
+                  <option value="seller">I want to Sell as Verified</option>
                 </select>
 
-                <button className="w-full bg-blue-600 py-4 rounded-xl font-bold text-sm">
+                <button className="w-full bg-blue-600 py-4 rounded-xl font-bold">
                   {status === 'loading' ? 'Securing...' : 'SECURE ACCESS'}
                 </button>
 
@@ -136,52 +157,68 @@ export default function LandingPage() {
             )}
           </div>
         </motion.div>
+
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="px-4 py-10 text-center">
-        <h2 className="text-2xl font-bold mb-6">How it works</h2>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 text-center">
+        <h2 className="text-3xl sm:text-4xl font-bold mb-10">How It Works</h2>
 
-        <div className="space-y-4 text-left max-w-md mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 text-left">
 
-          <div className="bg-white/5 p-4 rounded-xl">
-            <h3 className="font-bold text-sm mb-1">1. Physical Verification</h3>
-            <p className="text-gray-400 text-xs">
-              Real people verify warehouses and stock on-site.
+          <div className="bg-white/5 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">1. On-Ground Verification</h3>
+            <p className="text-gray-400 text-sm">
+              Local auditors physically inspect factories, warehouses, and inventory before any deal is approved.
             </p>
           </div>
 
-          <div className="bg-white/5 p-4 rounded-xl">
-            <h3 className="font-bold text-sm mb-1">2. Escrow Protection</h3>
-            <p className="text-gray-400 text-xs">
-              Funds are locked until verified shipment.
+          <div className="bg-white/5 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">2. Escrow Protection</h3>
+            <p className="text-gray-400 text-sm">
+              Your funds are locked and only released when real-world conditions match what was promised.
             </p>
           </div>
 
-          <div className="bg-white/5 p-4 rounded-xl">
-            <h3 className="font-bold text-sm mb-1">3. Verified Delivery</h3>
-            <p className="text-gray-400 text-xs">
-              Proof with GPS + timestamp before release.
+          <div className="bg-white/5 p-6 rounded-xl">
+            <h3 className="font-bold mb-2">3. Verified Proof</h3>
+            <p className="text-gray-400 text-sm">
+              GPS-tagged videos and timestamped loading confirmation ensure authenticity before payment release.
             </p>
           </div>
 
         </div>
       </section>
 
-      {/* TRUST */}
-      <section className="px-4 pb-16 text-center">
-        <h2 className="text-2xl font-bold mb-4">Why this matters</h2>
+      {/* TRUST SECTION */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 text-center">
+        <h2 className="text-3xl sm:text-4xl font-bold mb-6">Why This Matters</h2>
 
-        <p className="text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
-          Billions are lost due to fake suppliers and false claims.
+        <p className="text-gray-400 text-base leading-relaxed max-w-2xl mx-auto">
+          Billions are lost every year due to fake suppliers, forged documents, and unverifiable inventory.
           <br/><br/>
-          We replace blind trust with verified truth.
+          We’re building a system where **truth is physical, not digital** — and trust is earned, not assumed.
         </p>
       </section>
 
-      <footer className="text-center text-gray-600 text-xs pb-6">
-        © 2026 Physical Trade Protocol
+      {/* FOOTER */}
+      <footer className="mt-24 text-center text-gray-600 text-xs pb-10">
+        Physical Trade Protocol © 2026
       </footer>
+
+      {/* TOAST */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-green-600 px-5 py-3 rounded-xl text-sm shadow-lg"
+          >
+            ✅ Your request to join the waitlist has been received
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

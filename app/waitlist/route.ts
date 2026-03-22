@@ -4,20 +4,34 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const filename = `waitlist/${body.email.replace(/[^a-zA-Z0-9]/g, "_")}.json`;
+    const email = body.email;
+    const role = body.role;
 
-    const blob = await put(filename, JSON.stringify({
-      email: body.email,
-      role: body.role,
-      date: new Date()
-    }), {
-      access: "public"
+    if (!email) {
+      return Response.json({ error: "Email required" }, { status: 400 });
+    }
+
+    const filename = `waitlist/${email.replace(/[^a-zA-Z0-9]/g, "_")}.json`;
+
+    const blob = await put(
+      filename,
+      JSON.stringify({
+        email,
+        role,
+        date: new Date().toISOString(),
+      }),
+      {
+        access: "public",
+      }
+    );
+
+    return Response.json({
+      success: true,
+      url: blob.url,
     });
 
-    return Response.json({ success: true, url: blob.url });
-
   } catch (error) {
-    console.error(error);
-    return Response.json({ success: false }, { status: 500 });
+    console.error("UPLOAD ERROR:", error);
+    return Response.json({ error: "Failed to save" }, { status: 500 });
   }
 }

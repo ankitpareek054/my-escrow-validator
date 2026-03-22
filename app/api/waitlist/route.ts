@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         date: new Date().toISOString(),
       }),
       {
-        access: "public",
+        access: "private",
       }
     );
 

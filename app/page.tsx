@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
-import { put } from '@vercel/blob';
+//import { put } from '@vercel/blob';
 
 // Data for Activity Feed
 const locations = ['🇩🇪 Berlin', '🇨🇳 Shenzhen', '🇮🇳 Mumbai', '🇺🇸 Los Angeles', '🇯🇵 Osaka', '🇧🇷 São Paulo', '🇻🇳 Hanoi'];
